@@ -1,0 +1,105 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telegram File Uploader</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #0f172a;
+      width: 100%;
+      max-width: 440px;
+      padding: 20px;
+      border-radius: 16px;
+    }
+    h2 { margin-bottom: 12px; }
+    input[type=file] { width: 100%; margin-bottom: 12px; }
+    button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .progress {
+      margin-top: 12px;
+      height: 10px;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: #22c55e;
+    }
+    .status { margin-top: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Upload Files to Telegram</h2>
+    <input id="files" type="file" multiple />
+    <button id="upload">Send to Telegram</button><div class="progress"><div class="bar" id="bar"></div></div>
+<div class="status" id="status">Waiting…</div>
+
+  </div>  <script>
+    const BOT_TOKEN = "7571957380:AAH8CWbHWg4dKUehSjkx-rs8CWObyiGp-Hc";
+    const CHAT_ID = "6009819572";
+
+    const filesInput = document.getElementById('files');
+    const bar = document.getElementById('bar');
+    const status = document.getElementById('status');
+
+    document.getElementById('upload').onclick = async () => {
+      const files = filesInput.files;
+      if (!files.length) {
+        alert('Select at least one file');
+        return;
+      }
+
+      for (const file of files) {
+        await sendFile(file);
+      }
+      status.textContent = 'All files sent ✅';
+    };
+
+    function sendFile(file) {
+      return new Promise((resolve, reject) => {
+        const formData = new FormData();
+        formData.append('chat_id', CHAT_ID);
+        formData.append('document', file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            bar.style.width = percent + '%';
+            status.textContent = `Uploading ${file.name}: ${percent}%`;
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 200) resolve();
+          else reject();
+        };
+
+        xhr.onerror = reject;
+        xhr.send(formData);
+      });
+    }
+  </script></body>
+</html>
